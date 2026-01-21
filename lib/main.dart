@@ -1,3 +1,4 @@
+import 'package:crud_firestore/pages/foodPages.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
@@ -14,7 +15,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      home: Scaffold(body: Center(child: Text('Hello World!'))),
+      home: FoodListPage(),
     );
   }
 }
