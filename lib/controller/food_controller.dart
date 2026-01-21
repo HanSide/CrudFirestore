@@ -1,3 +1,4 @@
+import 'package:crud_firestore/main.dart';
 import 'package:crud_firestore/model/food_model.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -5,9 +6,7 @@ import 'package:get/get.dart';
 import 'package:get/utils.dart';
 
 class FoodController extends GetxController {
-  final DatabaseReference _dbRef = FirebaseDatabase.instance.ref().child(
-    'makanan',
-  );
+  final DatabaseReference _dbRef = database.ref().child('makanan');
 
   var foodList = <Makanan>[].obs;
   var isLoading = false.obs;
