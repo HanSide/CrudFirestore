@@ -1,126 +1,181 @@
+import 'package:crud_firestore/controller/food_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
-class FoodListPage extends StatelessWidget {
-  const FoodListPage({super.key});
-
+class MakananPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(FoodController());
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Daftar Makanan"),
+        title: Text('Data Makanan'),
         centerTitle: true,
-      ),
-
-      // BUTTON ACTION TAMBAH MENU (UI SAJA)
-      floatingActionButton: FloatingActionButton(
-        onPressed: null, // UI only
-        child: const Icon(Icons.add),
-      ),
-
-      body: ListView(
-        padding: const EdgeInsets.all(12),
-        children: const [
-          FoodItemCard(
-            name: "Nasi Goreng",
-            price: "Rp 15.000",
-          ),
-          FoodItemCard(
-            name: "Mie Ayam",
-            price: "Rp 12.000",
-          ),
-          FoodItemCard(
-            name: "Ayam Geprek",
-            price: "Rp 18.000",
-          ),
-          FoodItemCard(
-            name: "Bakso",
-            price: "Rp 13.000",
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: controller.fetchFoods,
+            tooltip: 'Refresh',
           ),
         ],
       ),
-    );
-  }
-}
-
-class FoodItemCard extends StatelessWidget {
-  final String name;
-  final String price;
-
-  const FoodItemCard({
-    super.key,
-    required this.name,
-    required this.price,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // INFO MAKANAN
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  price,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                  ),
+      body: Column(
+        children: [
+          // Form Input
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  spreadRadius: 1,
+                  blurRadius: 5,
                 ),
               ],
             ),
-
-            // ACTION BUTTONS (UI ONLY)
-            Row(
+            child: Column(
               children: [
-                // DELETE ICON
-                Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Icon(
-                    Icons.delete,
-                    color: Colors.white,
-                    size: 18,
+                TextField(
+                  controller: controller.namaController,
+                  decoration: InputDecoration(
+                    labelText: 'Nama Makanan',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.restaurant),
                   ),
                 ),
+                SizedBox(height: 10),
+                TextField(
+                  controller: controller.hargaController,
+                  decoration: InputDecoration(
+                    labelText: 'Harga',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.money),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                SizedBox(height: 10),
+                Obx(() => ElevatedButton(
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : controller.tambahMakanan,
+                      child: controller.isLoading.value
+                          ? SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text('Tambah Data'),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(double.infinity, 45),
+                      ),
+                    )),
+              ],
+            ),
+          ),
 
-                // PESAN BUTTON
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+          SizedBox(height: 10),
+
+          // List Data
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value && controller.foodList.isEmpty) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              if (controller.foodList.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.inbox, size: 80, color: Colors.grey),
+                      SizedBox(height: 10),
+                      Text(
+                        'Belum ada data',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ],
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    "Pesan",
-                    style: TextStyle(
-                      color: Colors.white,
+                );
+              }
+
+              return ListView.builder(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                itemCount: controller.foodList.length,
+                itemBuilder: (context, index) {
+                  final food = controller.foodList[index];
+
+                  return Card(
+                    margin: EdgeInsets.only(bottom: 10),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.blue,
+                        child: Icon(Icons.fastfood, color: Colors.white),
+                      ),
+                      title: Text(
+                        food.nama,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 5),
+                          Text(
+                            'Rp ${food.harga}',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'Key: ${food.key}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () =>
+                                controller.showEditDialog(food),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => controller.showDeleteDialog(
+                              food.key!,
+                              food.nama,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
