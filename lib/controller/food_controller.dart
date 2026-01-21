@@ -27,6 +27,20 @@ class FoodController extends GetxController {
     super.onClose();
   }
 
+  var isMobile = true.obs;
+  var screenWidth = 0.0.obs;
+
+  void updateScreenSize(BuildContext context) {
+    screenWidth.value = MediaQuery.of(context).size.width;
+    isMobile.value = screenWidth.value < 600;
+  }
+
+  int get gridColumns {
+    if (screenWidth.value >= 900) return 3;
+    if (screenWidth.value >= 600) return 2;
+    return 1;
+  }
+
   void fetchFoods() {
     _dbRef.onValue.listen((event) {
       foodList.clear();
